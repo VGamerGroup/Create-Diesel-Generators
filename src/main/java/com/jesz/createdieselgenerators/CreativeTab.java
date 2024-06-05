@@ -30,6 +30,7 @@ public class CreativeTab {
                         output.accept(BlockRegistry.HUGE_DIESEL_ENGINE.get());
                         output.accept(ItemRegistry.DISTILLATION_CONTROLLER.get());
                         output.accept(ItemRegistry.OIL_SCANNER.get());
+                        output.accept(BlockRegistry.PUMPJACK_HOLE.get());
                         output.accept(BlockRegistry.PUMPJACK_BEARING.get());
                         output.accept(BlockRegistry.PUMPJACK_CRANK.get());
                         output.accept(BlockRegistry.PUMPJACK_HEAD.get());

@@ -56,7 +56,6 @@ public class CreateDieselGenerators
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
 
-
         ItemRegistry.register();
         BlockRegistry.register();
         FluidRegistry.register();

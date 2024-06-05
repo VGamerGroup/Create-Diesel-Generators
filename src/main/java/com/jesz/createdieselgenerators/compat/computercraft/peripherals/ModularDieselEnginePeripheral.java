@@ -31,7 +31,7 @@ public class ModularDieselEnginePeripheral extends SyncedPeripheral<LargeDieselG
 
     @LuaFunction
     public final float getStressCapacity(){
-        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.frontEngine.get();
+        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.controller.get();
 
         if(frontEngine == null)
             return blockEntity.calculateAddedStressCapacity();
@@ -39,15 +39,11 @@ public class ModularDieselEnginePeripheral extends SyncedPeripheral<LargeDieselG
     }
     @LuaFunction
     public final int getEngineMultiBlockSize(){
-        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.frontEngine.get();
-
-        if(frontEngine == null)
-            return blockEntity.stacked;
-        return frontEngine.stacked;
+        return blockEntity.length;
     }
     @LuaFunction
     public final float getSpeed(){
-        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.frontEngine.get();
+        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.controller.get();
         if(frontEngine == null)
             return Math.abs(blockEntity.getGeneratedSpeed());
         return Math.abs(frontEngine.getGeneratedSpeed());
@@ -55,7 +51,7 @@ public class ModularDieselEnginePeripheral extends SyncedPeripheral<LargeDieselG
 
     @LuaFunction
     public final float getFuelAmount(){
-        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.frontEngine.get();
+        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.controller.get();
         if(frontEngine == null)
             return blockEntity.tank.getPrimaryHandler().getFluid().getAmount();
         return frontEngine.tank.getPrimaryHandler().getFluid().getAmount();

@@ -21,37 +21,32 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 
-import java.util.List;
+import java.util.*;
 
 import static com.jesz.createdieselgenerators.blocks.DieselGeneratorBlock.*;
 
 public class DieselGeneratorBlockEntity extends GeneratingKineticBlockEntity {
-    BlockState state;
-    public boolean validFuel;
 
+    public boolean validFuel;
     public DieselGeneratorBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
-        this.state = state;
     }
     public SmartFluidTankBehaviour tank;
     @Override
     public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
         if (computerBehaviour.isPeripheralCap(cap))
             return computerBehaviour.getPeripheralCapability();
-        if(state.getValue(FACING) == Direction.DOWN) {
-            if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.WEST)
+        if(getBlockState().getValue(FACING) == Direction.DOWN) {
+            if (cap == ForgeCapabilities.FLUID_HANDLER && side.getAxis() == Direction.Axis.X)
                 return tank.getCapability().cast();
-            if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.EAST)
-                return tank.getCapability().cast();
-        }else if(state.getValue(FACING) == Direction.UP){
-            if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.NORTH)
-                return tank.getCapability().cast();
-            if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.SOUTH)
+        }else if(getBlockState().getValue(FACING) == Direction.UP){
+            if (cap == ForgeCapabilities.FLUID_HANDLER && side.getAxis() == Direction.Axis.Z)
                 return tank.getCapability().cast();
         }else{
             if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.DOWN)
@@ -71,15 +66,14 @@ public class DieselGeneratorBlockEntity extends GeneratingKineticBlockEntity {
     protected void write(CompoundTag compound, boolean clientPacket) {
         super.write(compound, clientPacket);
         compound.putInt("PartialSecond", partialSecond);
-        tank.write(compound, false);
     }
 
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
         super.read(compound, clientPacket);
         partialSecond = compound.getInt("PartialSecond");
-        tank.read(compound, false);
     }
+
     public AbstractComputerBehaviour computerBehaviour;
     public ScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
 
@@ -93,28 +87,32 @@ public class DieselGeneratorBlockEntity extends GeneratingKineticBlockEntity {
 
         behaviours.add(movementDirection);
         tank = SmartFluidTankBehaviour.single(this, 1000);
+        tank.whenFluidUpdates(this::tankUpdated);
         behaviours.add(tank);
         super.addBehaviours(behaviours);
     }
+
+    private void tankUpdated() {
+        reActivateSource = true;
+        if(!getBlockState().getValue(POWERED))
+            validFuel = FuelTypeManager.getGeneratedSpeed(this, tank.getPrimaryHandler().getFluid().getFluid()) != 0;
+    }
+
     public void onDirectionChanged(){}
     @Override
-    public void initialize() {
-        super.initialize();
-        if (!hasSource() || getGeneratedSpeed() > getTheoreticalSpeed())
-            updateGeneratedRotation();
-    }
-    @Override
     public float calculateAddedStressCapacity() {
-        if(getGeneratedSpeed() == 0 || state.getValue(POWERED))
+        if(getGeneratedSpeed() == 0 || getBlockState().getValue(POWERED))
             return 0;
-        return FuelTypeManager.getGeneratedStress(this, tank.getPrimaryHandler().getFluid().getFluid()) / Math.abs(getGeneratedSpeed());
+        float capacity =  FuelTypeManager.getGeneratedStress(this, tank.getPrimaryHandler().getFluid().getFluid()) / Math.abs(getGeneratedSpeed());
+        lastCapacityProvided = capacity;
+        return  capacity;
     }
 
     @Override
     public float getGeneratedSpeed() {
-        if(state.getValue(POWERED))
+        if(getBlockState().getValue(POWERED))
             return 0;
-        return convertToDirection((movementDirection.getValue() == 1 ? -1 : 1)* FuelTypeManager.getGeneratedSpeed(this, tank.getPrimaryHandler().getFluid().getFluid()), getBlockState().getValue(DieselGeneratorBlock.FACING))*(state.getValue(TURBOCHARGED) ? ConfigRegistry.TURBOCHARGED_ENGINE_MULTIPLIER.get().floatValue() : 1);
+        return convertToDirection((movementDirection.getValue() == 1 ? -1 : 1)* FuelTypeManager.getGeneratedSpeed(this, tank.getPrimaryHandler().getFluid().getFluid()), getBlockState().getValue(DieselGeneratorBlock.FACING))*(getBlockState().getValue(TURBOCHARGED) ? ConfigRegistry.TURBOCHARGED_ENGINE_MULTIPLIER.get().floatValue() : 1);
     }
 
     @Override
@@ -128,32 +126,32 @@ public class DieselGeneratorBlockEntity extends GeneratingKineticBlockEntity {
             return added;
         return containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability().cast());
     }
-    int t = 0;
+    int soundTick = 0;
+
     @Override
     public void tick() {
         super.tick();
-        state = getBlockState();
-        reActivateSource = true;
-        if (level.isClientSide && !state.getValue(SILENCED))
-            if (state.getValue(TURBOCHARGED) ? t > FuelTypeManager.getSoundSpeed(tank.getPrimaryHandler().getFluid().getFluid()) / 2 : t > FuelTypeManager.getSoundSpeed(tank.getPrimaryHandler().getFluid().getFluid())) {
+        if (level.isClientSide && !getBlockState().getValue(SILENCED))
+            if (getBlockState().getValue(TURBOCHARGED) ? soundTick > FuelTypeManager.getSoundSpeed(tank.getPrimaryHandler().getFluid().getFluid()) / 2 : soundTick > FuelTypeManager.getSoundSpeed(tank.getPrimaryHandler().getFluid().getFluid())) {
                 if (validFuel) {
-                    t = 0;
-                    level.playLocalSound(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), SoundRegistry.DIESEL_ENGINE_SOUND.get(), SoundSource.BLOCKS, state.getValue(TURBOCHARGED) ? 0.5f : 0.3f, state.getValue(TURBOCHARGED) ? 1.1f : 1f, false);
+                    soundTick = 0;
+                    level.playLocalSound(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), SoundRegistry.DIESEL_ENGINE_SOUND.get(), SoundSource.BLOCKS, getBlockState().getValue(TURBOCHARGED) ? 0.5f : 0.3f, getBlockState().getValue(TURBOCHARGED) ? 1.1f : 1f, false);
                 }
             } else {
-                t++;
+                soundTick++;
             }
-        if(state.getValue(POWERED))
+        if(getBlockState().getValue(POWERED))
             validFuel = false;
         else
             validFuel = FuelTypeManager.getGeneratedSpeed(this, tank.getPrimaryHandler().getFluid().getFluid()) != 0;
+
         partialSecond++;
         if (partialSecond >= 20) {
             partialSecond = 0;
             if (validFuel) {
-                if (tank.getPrimaryHandler().getFluid().getAmount() >= FuelTypeManager.getBurnRate(this, tank.getPrimaryHandler().getFluid().getFluid()) * (!state.getValue(TURBOCHARGED) ? 1 : ConfigRegistry.TURBOCHARGED_ENGINE_BURN_RATE_MULTIPLIER.get().floatValue()))
+                if (tank.getPrimaryHandler().getFluid().getAmount() >= FuelTypeManager.getBurnRate(this, tank.getPrimaryHandler().getFluid().getFluid()) * (!getBlockState().getValue(TURBOCHARGED) ? 1 : ConfigRegistry.TURBOCHARGED_ENGINE_BURN_RATE_MULTIPLIER.get().floatValue()))
                     tank.getPrimaryHandler().setFluid(FluidHelper.copyStackWithAmount(tank.getPrimaryHandler().getFluid(),
-                            (int) (tank.getPrimaryHandler().getFluid().getAmount() - FuelTypeManager.getBurnRate(this, tank.getPrimaryHandler().getFluid().getFluid()) * (!state.getValue(TURBOCHARGED) ? 1 : ConfigRegistry.TURBOCHARGED_ENGINE_BURN_RATE_MULTIPLIER.get().floatValue()))));
+                            (int) (tank.getPrimaryHandler().getFluid().getAmount() - FuelTypeManager.getBurnRate(this, tank.getPrimaryHandler().getFluid().getFluid()) * (!getBlockState().getValue(TURBOCHARGED) ? 1 : ConfigRegistry.TURBOCHARGED_ENGINE_BURN_RATE_MULTIPLIER.get().floatValue()))));
                 else
                     tank.getPrimaryHandler().setFluid(FluidStack.EMPTY);
             }

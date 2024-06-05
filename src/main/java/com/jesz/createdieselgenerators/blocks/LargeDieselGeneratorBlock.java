@@ -44,6 +44,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -74,10 +75,7 @@ public class LargeDieselGeneratorBlock extends HorizontalKineticBlock implements
     }
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighbourState, LevelAccessor level, BlockPos pos, BlockPos neighbourPos) {
-        withBlockEntityDo(level, pos, be -> {
-            if(be.getEngineBack() == null)
-                be.updateStacked();
-        });
+        withBlockEntityDo(level, pos, LargeDieselGeneratorBlockEntity::updateConnectivity);
         return super.updateShape(state, direction, neighbourState, level, pos, neighbourPos);
     }
 
@@ -171,30 +169,31 @@ public class LargeDieselGeneratorBlock extends HorizontalKineticBlock implements
     @Override
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos otherPos, boolean moving) {
         withBlockEntityDo(level, pos, be -> {
-            LargeDieselGeneratorBlockEntity front = be.frontEngine.get();
+            LargeDieselGeneratorBlockEntity front = be.controller.get();
             if(front == null)
                 front = be;
-            if(front != be){
-                level.setBlock(pos, state.setValue(POWERED, level.hasNeighborSignal(pos)), 2);
+            LargeDieselGeneratorBlockEntity lastEngine = front.getBackEngine();
+            boolean powered = false;
+            while (lastEngine != null) {
+                if(level.hasNeighborSignal(lastEngine.getBlockPos()))
+                    powered = true;
+                lastEngine = lastEngine.getBackEngine();
             }
-            if(!front.getBlockState().getValue(POWERED) && level.hasNeighborSignal(pos))
-                level.setBlock(front.getBlockPos(), front.getBlockState().setValue(POWERED, true), 2);
-            if(front.getBlockState().getValue(POWERED) && !level.hasNeighborSignal(pos)) {
-                boolean atLeastOneEnginePowered = false;
-                for (int i = 0; i < front.stacked; i++) {
-                    BlockState bs = level.getBlockState(pos.relative(state.getValue(FACING).getAxis(), -i));
-                    if (bs.getBlock() instanceof LargeDieselGeneratorBlock && bs.getValue(FACING).getAxis() == state.getValue(FACING).getAxis() && bs.getValue(POWERED)) {
-                        atLeastOneEnginePowered = true;
-                        break;
-                    }
-                }
-                if(!atLeastOneEnginePowered){
-                    level.setBlock(front.getBlockPos(), front.getBlockState().setValue(POWERED, false), 2);
-                }
+            if(front != be) {
+                level.setBlock(front.getBlockPos(), front.getBlockState().setValue(POWERED, powered), 2);
             }
+            level.setBlock(pos, state.setValue(POWERED, level.hasNeighborSignal(pos) || powered), 2);
+
         });
         super.neighborChanged(state, level, pos, block, otherPos, moving);
     }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
+        withBlockEntityDo(level, pos, LargeDieselGeneratorBlockEntity::removed);
+        super.onRemove(state, level, pos, newState, moved);
+    }
+
     @Override
     public Class<LargeDieselGeneratorBlockEntity> getBlockEntityClass() {
         return LargeDieselGeneratorBlockEntity.class;
