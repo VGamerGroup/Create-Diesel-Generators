@@ -1,5 +1,6 @@
 {
   "itemGroup.cdg_creative_tab": "Create: Дизельные генераторы",
+  "block.createdieselgenerators.chip_wood_beam": "Балка из опилок",
   "item.createdieselgenerators.wood_chip": "Опилки",
   "block.createdieselgenerators.chip_wood_block": "Блок опилок",
   "block.createdieselgenerators.chip_wood_stairs": "Ступеньки из опилок",
@@ -31,6 +32,7 @@
   "block.createdieselgenerators.powered_engine_shaft": "Силовой вал",
   "block.createdieselgenerators.huge_diesel_engine": "Огромный дизельный генератор",
   "block.createdieselgenerators.canister": "Канистра",
+  "block.createdieselgenerators.oil_barrel": "Топливная бочка",
   "block.createdieselgenerators.pumpjack_bearing": "Подшипник станка-качалки",
   "block.createdieselgenerators.pumpjack_hole": "Тройник",
   "block.createdieselgenerators.pumpjack_head": "Головка балансира",
@@ -55,13 +57,32 @@
   "createdieselgenerators.goggle.pumpjack_invalid_pipes": "Подключение к бедроку отсутствует",
 
   "createdieselgenerators.pumpjack_bearing.tooltip.summary": "Действует, как _подшипник_ для _станков-качалок_. Нажмите на него с помощью _гаячного ключа_, чтобы изменить его на _подшипник траверсы_ для _кривошипа_.",
+  "createdieselgenerators.pumpjack_bearing.tooltip.behaviour1": "Превращается в _подшипник траверсы_ для _станка-качалки_.",
+  "createdieselgenerators.pumpjack_bearing.tooltip.condition1": "ПКМ с гаячным ключом",
   "createdieselgenerators.engine_silencer.tooltip.summary": "Используйте на _дизельном двигателе_, чтобы заглушить его.",
+  "createdieselgenerators.engine_silencer.tooltip.behaviour1": "_Установливает_ это _улучшение_ на него",
+  "createdieselgenerators.engine_silencer.tooltip.condition1": "ПКМ по двигателю",
   "createdieselgenerators.engine_turbocharger.tooltip.summary": "Используйте на _дизельном двигателе_, чтобы сделать его более быстрым.",
+  "createdieselgenerators.engine_turbocharger.tooltip.behaviour1": "_Установливает_ это _улучшение_ на него",
+  "createdieselgenerators.engine_turbocharger.tooltip.condition1": "ПКМ по двигателю",
   "createdieselgenerators.canister.tooltip.summary": "Хранит _жидкости_ для вас. Она не теряет своё _содержимое_, когда её _сломали и подобрали_.",
   "createdieselgenerators.lighter.tooltip.summary": "_Зажигалка_. Заправьте _жидким топливом_ для использования.",
+  "createdieselgenerators.lighter.tooltip.behaviour1": "Закрывается или открывается  и пытается поджечь.",
+  "createdieselgenerators.lighter.tooltip.behaviour2": "_Закрывается_ или _открывается_ без _предупреждения._",
+  "createdieselgenerators.lighter.tooltip.condition1": "ПКМ",
+  "createdieselgenerators.lighter.tooltip.condition2": "Shift+ПКМ",
+  "createdieselgenerators.chemical_sprayer.tooltip.behaviour1": "Начинает _распылять жидкость_ из своего _резервуара_.",
+  "createdieselgenerators.chemical_sprayer.tooltip.condition1": "ПКМ",
   "createdieselgenerators.chemical_sprayer.tooltip.summary": "Наполните любой _жидкостью_, чтобы опрыскать своих _друзей_ или _недругов_!",
   "createdieselgenerators.chemical_sprayer_lighter.tooltip.summary": "Наполните любой _жидкостью_, чтобы опрыскать своих _друзей_ или _недругов_! Функционирует, _как огнемёт_, когда он заполнен _горючей жидкостью_.",
+  "createdieselgenerators.chemical_sprayer_lighter.tooltip.behaviour1": "Начинает _распылять жидкость_ из своего _резервуара_ и пытаться воспламенить её.",
+  "createdieselgenerators.chemical_sprayer_lighter.tooltip.condition1": "ПКМ",
   "createdieselgenerators.oil_scanner.tooltip.summary": "Используйте для проверки на наличие _залеж сырой нефти_.",
+  "createdieselgenerators.oil_scanner.tooltip.condition1": "ПКМ",
+  "createdieselgenerators.oil_scanner.tooltip.behaviour1": "Начинает сканирование на наличие залеж нефти.",
+  "createdieselgenerators.oil_barrel.tooltip.summary": "Хранить _жидкости_ для Вас. Может быть установлена как _горизонтально,_ так и _вертикально._",
+  "createdieselgenerators.oil_barrel.tooltip.condition1": "ПКМ с красителем",
+  "createdieselgenerators.oil_barrel.tooltip.behaviour1": "_Окрашивает_ блок.",
 
   "createdieselgenerators.tooltip.holdForFuelStats": "Удерживайте [%1$s] для сводки топлива",
   "createdieselgenerators.tooltip.keyAlt": "Alt",
@@ -129,5 +150,5 @@
   "createdieselgenerators.actionbar.oil_scanner.oil_high": "§lНайдено много нефти!",
   "createdieselgenerators.actionbar.oil_scanner.too_high_up": "§lВы находитесь слишком высоко, чтобы проверять наличие залежей нефти!",
 
-  "_": "Небольшие правки перевода на строках 109, 108, 24 и замена слов 'установкой' на 'установка' на строках 66, 72, 79, 86, 91,94."
+  "_": "На переводом работали VGamerGroup, ProTerUga и Hardziplay"
 }
